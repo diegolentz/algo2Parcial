@@ -6,11 +6,15 @@ interface Acciones {
         tituloActualizado: String,
         conductoresActualizados: MutableList<Conductor>,
         presupuestoActualizado: Double,
+        sponsorsActualizados: MutableList<Sponsor>,
+        diaActualizado: Dia,
         duracionActualizada: Double
     ) {
         programa.titulo = tituloActualizado
         programa.conductores = conductoresActualizados
         programa.presupuestoBase = presupuestoActualizado
+        programa.sponsors = sponsorsActualizados
+        programa.dia = diaActualizado
         programa.duracion = duracionActualizada
     }
 }
@@ -34,14 +38,14 @@ class partirPrograma(val programaOriginal: Programa) : Acciones {
     }
 
     override fun ejecutar() {
-        actualizar(programaOriginal, primerTituloArmado, conductoresPrimeraParte, presupuesto, duracion)
-        actualizar(programaClonado, segundoTitulo, conductoresSegundaParte, presupuesto, duracion)
+        actualizar(programaOriginal, primerTituloArmado, conductoresPrimeraParte, presupuesto,programaOriginal.sponsors,programaOriginal.dia, duracion)
+        actualizar(programaClonado, segundoTitulo, conductoresSegundaParte, presupuesto,programaOriginal.sponsors,programaOriginal.dia, duracion)
     }
 }
 
 class desaparecerPrograma(val programaReemplazar: Programa) : Acciones {
     override fun ejecutar() {
-        actualizar(programaReemplazar, "los simpsons", mutableListOf(), 100.00, programaReemplazar.duracion)
+        actualizar(programaReemplazar, "los simpsons", mutableListOf(), 100.00,programaReemplazar.sponsors,programaReemplazar.dia, programaReemplazar.duracion)
     }
 }
 
@@ -71,7 +75,8 @@ class fusionarPrograma(val programa: Programa, val programacion: MutableList<Pro
     val programaFusionado = Programa()
 
     override fun ejecutar() {
-        actualizar(programaFusionado, tituloNuevo, conductores, presupuesto, duracion)
+        actualizar(programaFusionado, tituloNuevo, conductores, presupuesto,
+            mutableListOf(sponsorRandom),dia, duracion)
     }
 }
 
