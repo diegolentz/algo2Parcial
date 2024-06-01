@@ -1,19 +1,30 @@
-interface IRestriccion {
-    fun condicionRestriccion(programa: Programa) : Boolean
+abstract class Restricciones {
+    val acciones = mutableListOf<Acciones>()
+
+    // para las restricciones
+    abstract fun seCumple(programa: Programa) : Boolean
+    // para las acciones
+    fun realizarAcciones(programa: Programa, grilla: Grilla) = acciones.forEach{ accion -> accion.ejecutarAcciones(programa, grilla)}
 }
 
-class RestriccionPromedioRaiting(val promedioMinimo : Double) : IRestriccion {
-    override fun condicionRestriccion(programa: Programa) = programa.promedioRaiting() >= promedioMinimo
+
+class RestriccionPromedioRaiting(var minimoRaiting : Int) : Restricciones() {
+    override fun seCumple(programa: Programa) = programa.promedio() > minimoRaiting
 }
-class RestriccionNConductores(val cantidadConductores : Int) : IRestriccion {
-    override fun condicionRestriccion(programa: Programa) : Boolean = programa.cantidadConductores() <= cantidadConductores
+class RestriccionMaximoConductores(var maximoConductores : Int) : Restricciones(){
+    override fun seCumple(programa: Programa) = programa.cantidadConductores() < maximoConductores
 }
-class RestriccionConductorPresente(val conductor: Conductor) : IRestriccion {
-    override fun condicionRestriccion(programa: Programa) = programa.contieneConductor(conductor)
+class RestriccionSeEncuentreConductor(val conductorBuscado : String) : Restricciones(){
+    override fun seCumple(programa: Programa) = programa.seEncuentraConductor(conductorBuscado)
 }
-class RestriccionPresupuesto(val presupuestoMaximo : Int) : IRestriccion {
-    override fun condicionRestriccion(programa: Programa) = programa.cumplePresupuesto(presupuestoMaximo)
+class RestriccionNoExcederPresupuesto(var presupuesto: Double) : Restricciones(){
+    override fun seCumple(programa: Programa): Boolean = programa.noExcedePresupuesto(presupuesto)
+
 }
-class RestriccionCombinada(val condicionOR : MutableList<IRestriccion>,val condicionAND : MutableList<IRestriccion>) : IRestriccion {
-    override fun condicionRestriccion(programa: Programa) = condicionOR.any{it.condicionRestriccion(programa)} && condicionAND.all{it.condicionRestriccion(programa)}
+class RestriccionCombinadaOR(val restricciones : List<Restricciones>) : Restricciones(){
+    override fun seCumple(programa: Programa): Boolean = restricciones.any{it.seCumple(programa)}
+
+}
+class RestriccionCombinadaAND(val restricciones : List<Restricciones>) : Restricciones(){
+    override fun seCumple(programa: Programa): Boolean = restricciones.all { it.seCumple(programa) }
 }
