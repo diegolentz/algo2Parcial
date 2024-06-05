@@ -1,37 +1,38 @@
-interface IPerfiles {
+class Persona {
+    val perfilRegalo = mutableListOf<IPerfiles>()
+    val regalos = mutableListOf<Regalo>()
 
-    fun puedeHacerTarea(tarea: Tareas): Boolean
-}
-class Integrante {
-    val personalidad = mutableListOf<IPerfiles>()
-
-    fun quiereHacerTarea(tarea: Tareas,banda: Bandas) = personalidad.any { it.puedeHacerTarea(tarea) }
-
-}
-
-class AltoPerfil : IPerfiles {
-    override fun puedeHacerTarea(tarea: Tareas)  = tarea.recaudacionEstimada() > 1000.0
-}
-class Culposos : IPerfiles {
-    override fun puedeHacerTarea(tarea: Tareas) = tarea.sueldoInvolucrado() > 5000.0
-}
-class Alternantes : IPerfiles {
-    lateinit var personalidad : IPerfiles
-
-    override fun puedeHacerTarea(tarea: Tareas): Boolean {
-        val mes = tarea.mes.value
-        if(mes % 2 == 0){
-            personalidad = Culposos()
-        }else {
-            personalidad = AltoPerfil()
-        }
-
-        return (personalidad.puedeHacerTarea(tarea))
+    fun regaloAdecuado(regalo: Regalo) = perfilRegalo.any{it.esAdecuado(regalo)}
+    fun recibirRegalo(regalo: Regalo) = regalos.add(regalo)
+    fun modificaPerfil() {
+        perfilRegalo.clear()
+        perfilRegalo.add(Interesadas(5000.0))
     }
+
 }
-class Cabuleros : IPerfiles {
-    override fun puedeHacerTarea(tarea: Tareas): Boolean = tarea.RestriccionLetra("x")
+
+
+interface IPerfiles {
+    fun esAdecuado(regalo: Regalo) : Boolean
+
 }
-class Combinada(var combinado: MutableList<IPerfiles> = mutableListOf<IPerfiles>()) : IPerfiles {
-    override fun puedeHacerTarea(tarea: Tareas) = combinado.all { it.puedeHacerTarea(tarea) }
+
+class Conformista : IPerfiles {
+    override fun esAdecuado(regalo: Regalo): Boolean = true
+}
+
+class Exigentes : IPerfiles {
+    override fun esAdecuado(regalo: Regalo): Boolean = regalo.esValioso()
+}
+
+class Interesadas(var monto : Double) : IPerfiles {
+    override fun esAdecuado(regalo: Regalo): Boolean = regalo.supera(monto)
+}
+
+class Marqueras(var marca : String) : IPerfiles {
+    override fun esAdecuado(regalo: Regalo): Boolean = regalo.marca(marca)
+}
+
+class Combinetas(val preferencias : List<IPerfiles>) : IPerfiles {
+    override fun esAdecuado(regalo: Regalo): Boolean = preferencias.any { it.esAdecuado(regalo) }
 }
