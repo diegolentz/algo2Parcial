@@ -1,54 +1,42 @@
+import java.time.LocalDate
 
 interface Observer {
-    fun realizarAccionar(persona: Persona)
+    fun realizarAccion(vito: Vito, banda: Banda)
 }
 
-class MailObserver: Observer{
-    lateinit var mail : Mailsender
-    override fun realizarAccionar(persona: Persona) = mail.send(Mail(
-        "mi",
-        "el",
-        "entrega",
-        "regalo entregado!"
+interface Whatsapp {
+    fun enviarWhachap(whatsapp: Wazaa)
+}
+
+data class Wazaa(val numeroVito: Int, val mensajeClave: String, val cobro: Double)
+
+class Notificacion : Observer {
+    lateinit var whatsapp: Whatsapp
+
+    override fun realizarAccion(vito: Vito, banda: Banda) = whatsapp.enviarWhachap(Wazaa(
+        numeroVito = 123456789,
+        mensajeClave = "algun msh klalakakaskl",
+        cobro = banda.dineroRecaudado
     ))
 }
-
-interface Mailsender {
-    fun send(mail : Mail)
+interface IAfip {
+    fun notificarAfip(msj : Afip)
+}
+data class Afip(var fecha : LocalDate,var tipoMovimiento : Int, var concepto : String,var monto : Double )
+class SuperaMonto : Observer {
+    lateinit var afip : IAfip
+    override fun realizarAccion(vito: Vito, banda: Banda) {
+        afip.notificarAfip(Afip(
+            fecha = LocalDate.now(),
+            tipoMovimiento = if(banda.dineroRecaudado > 1000000) 1 else 2,
+            concepto = "otros",
+            monto = banda.dineroRecaudado
+        ))
+    }
 }
 
-data class Mail (
-    var from: String,
-    var to: String,
-    var subject: String,
-    var body: String
-)
-
-
-class RenoLocoObserver : Observer {
-    lateinit var reporte : ReporteDistribuidora
-    override fun realizarAccionar(persona: Persona) = reporte.enviarReporte(Reporte(
-        "25 de mayo 123456",
-        "el diego",
-        36791436,
-        "asdasd23456qwe"
-    ))
-}
-interface ReporteDistribuidora {
-    fun enviarReporte(reporte : Reporte)
-}
-
-data class Reporte (
-    var direccion : String,
-    var nombrePersona : String,
-    var dni : Int,
-    var codigoRegalo : String
-
-)
-class noTodoSePuedeObserver : Observer {
-    override fun realizarAccionar(persona: Persona) {
-        if (persona.regalos.any { regalo -> regalo.supera(10000.0) })
-            persona.modificaPerfil()
-        println("no se puede todo cumpa!")
+class Repartija30 : Observer {
+    override fun realizarAccion(vito: Vito, banda: Banda) {
+        // Implementa la lógica aquí
     }
 }
