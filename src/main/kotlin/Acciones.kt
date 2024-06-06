@@ -1,87 +1,87 @@
+import java.time.DayOfWeek
+import java.time.LocalDate
+
 interface Acciones {
-    fun ejecutar()
+    fun ejecutarAccion(programa: Programa, grilla: Grilla)
+}
 
-    fun actualizar(
-        programa: Programa,
-        tituloActualizado: String,
-        conductoresActualizados: MutableList<Conductor>,
-        presupuestoActualizado: Double,
-        sponsorsActualizados: MutableList<Sponsor>,
-        diaActualizado: Dia,
-        duracionActualizada: Double
-    ) {
-        programa.titulo = tituloActualizado
-        programa.conductores = conductoresActualizados
-        programa.presupuestoBase = presupuestoActualizado
-        programa.sponsors = sponsorsActualizados
-        programa.dia = diaActualizado
-        programa.duracion = duracionActualizada
+/*podríamos querer partir el programa en 2. Se generan 2 programas en los que queda:
+     Los días serían los mismos.
+*/
+class DividirPrograma : Acciones {
+    override fun ejecutarAccion(programa: Programa, grilla: Grilla) {
+        val mitadConductores = programa.conductores.size
+        val segundosConductores = programa.conductores.takeLast(5)
+        val primerosConducotres = programa.conductores.minus(segundosConductores)
+
+        var presu = programa.presupuesto/2
+        val spon = programa.sponsors
+        var dura = programa.duracion / 2
+        val primerTitulo = programa.titulo.split("")[0] + "en el aire!!"
+        val segundoTitulo = programa.titulo.split("")[1] ?: "programa sin nombre"
+        val diass = programa.dias
+
+        val primero = Programa().apply {
+            conductores = primerosConducotres.toMutableList()
+            presu = presupuesto
+            sponsors = spon
+            duracion = dura
+            titulo = primerTitulo
+            dias = diass
+        }
+        val segundo = Programa().apply {
+            conductores = segundosConductores.toMutableList()
+            presu = presupuesto
+            sponsors = spon
+            duracion = dura
+            titulo = segundoTitulo
+            dias = diass
+        }
+        grilla.remover(programa)
+        grilla.agregar(primero)
+        grilla.agregar(segundo)
+
     }
 }
 
-class partirPrograma(val programaOriginal: Programa) : Acciones {
-    val programaClonado = programaOriginal.clone() as Programa
+class DesaparecerPrograma : Acciones {
+    override fun ejecutarAccion(programa: Programa, grilla: Grilla) {
+        grilla.remover(programa)
 
-    val conductoresPrimeraParte = programaOriginal.conductores.subList(0, programaOriginal.conductores.size / 2).toMutableList()
-    val conductoresSegundaParte = programaOriginal.conductores.subList(programaOriginal.conductores.size / 2, programaOriginal.conductores.size).toMutableList()
+        val reemplazo = Programa().apply {
+            titulo = "los simpson"
+            presupuesto = 100000000.0
+        }
 
-    val presupuesto = programaOriginal.presupuestoBase / 2
-    val duracion: Double = programaOriginal.duracion / 2
-
-    val primerTitulo = programaOriginal.titulo.split(" ")[0]
-    var primerTituloArmado = "$primerTitulo en el aire!"
-
-    val segundoTitulo = if (programaOriginal.titulo.contains(" ")) {
-        programaOriginal.titulo.split(" ")[1]
-    } else {
-        "programa sin nombre"
-    }
-
-    override fun ejecutar() {
-        actualizar(programaOriginal, primerTituloArmado, conductoresPrimeraParte, presupuesto,programaOriginal.sponsors,programaOriginal.dia, duracion)
-        actualizar(programaClonado, segundoTitulo, conductoresSegundaParte, presupuesto,programaOriginal.sponsors,programaOriginal.dia, duracion)
+        grilla.agregar(reemplazo)
     }
 }
+class FusionarPrograma : Acciones {
+    override fun ejecutarAccion(programa: Programa, grilla: Grilla) {
+        val cantidadProgramas = grilla.programas.size
+        val miPosicion = grilla.programas.indexOf(programa)
 
-class desaparecerPrograma(val programaReemplazar: Programa) : Acciones {
-    override fun ejecutar() {
-        actualizar(programaReemplazar, "los simpsons", mutableListOf(), 100.00,programaReemplazar.sponsors,programaReemplazar.dia, programaReemplazar.duracion)
+        val siguientePrograma = if(miPosicion > cantidadProgramas) grilla.programas[miPosicion+1] else grilla.programas[0]
+        val spon = programa.sponsors.plus(siguientePrograma.sponsors).random().toString()
+        val tituloRandom = mutableListOf("Impacto total","Un buen día")
+
+        val nuevoPrograma = Programa().apply {
+            conductores = mutableListOf(programa.primerConductor(),siguientePrograma.primerConductor() )
+            presupuesto = Math.min(programa.presupuesto,siguientePrograma.presupuesto)
+            sponsors = spon
+            duracion = programa.duracion + siguientePrograma.duracion
+            dias = programa.dias
+            titulo = titulo.random().toString()
+
+        }
+        grilla.remover(programa)
+        grilla.remover(siguientePrograma)
+        grilla.agregar(nuevoPrograma)
     }
 }
-
-class fusionarPrograma(val programa: Programa, val programacion: MutableList<Programa>) : Acciones {
-    val titulo: MutableList<String> = mutableListOf("Impacto total", "Un buen día")
-    val primerPrograma = programacion.indexOf(programa)
-    var siguientePrograma = if (primerPrograma == programacion.size - 1) {
-        programacion.first()
-    } else {
-        programacion[primerPrograma + 1]
-    }
-    val conductores = mutableListOf<Conductor>().apply {
-        add(programa.conductores.first())
-        add(siguientePrograma.conductores.first())
-    }
-    val presupuesto = if (programa.presupuestoBase < siguientePrograma.presupuestoBase) {
-        programa.presupuestoBase
-    } else {
-        siguientePrograma.presupuestoBase
-    }
-    val sponsor = programa.sponsors
-    val setDeSponsors = programa.sponsors.union(siguientePrograma.sponsors)
-    val sponsorRandom = setDeSponsors.random()
-    val duracion = programa.duracion + siguientePrograma.duracion
-    val dia = programa.dia
-    val tituloNuevo = titulo.random()
-    val programaFusionado = Programa()
-
-    override fun ejecutar() {
-        actualizar(programaFusionado, tituloNuevo, conductores, presupuesto,
-            mutableListOf(sponsorRandom),dia, duracion)
-    }
-}
-
-class moverDiaPrograma(val programa: Programa) : Acciones {
-    override fun ejecutar() {
-        programa.apply { dia = Dia.MARTES }
+class MoverDia(var dia : DayOfWeek) : Acciones {
+    override fun ejecutarAccion(programa: Programa, grilla: Grilla) {
+        programa.dias.clear()
+        programa.dias = mutableListOf( dia)
     }
 }
